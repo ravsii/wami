@@ -4,12 +4,13 @@ What are my imports? is a tool for go projects to analyze import
 
 ## todo
 
-group by
-strip prefix
-strip suffix
-ignore
-min amount
-max amount
+- group by
+- strip prefix
+- strip suffix
+- ignore
+- min amount
+- max amount
+- aliases only
 
 ## example output
 
