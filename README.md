@@ -11,6 +11,12 @@ What are my imports? is a tool for go projects to analyze import
 - min amount
 - max amount
 - aliases only
+- add benchmarks using hyperfine for big repos
+  - k8s
+  - docker
+  - hugo?
+  - lazyXXX?
+  - go itself
 
 ## example output
 
