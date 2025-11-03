@@ -1,17 +1,49 @@
-# wami
+# wami - What Are My Imports?
 
-What are my imports? is a tool for go projects to analyze import
+wami, or What Are My Imports? - is a tool for go projects to analyze imports and
+their aliases. It has a lot of options, filters and output formats so it could
+be integrated with other tools very easily.
+
+## Table of Contents
+
+<!--toc:start-->
+- [wami](#wami)
+  - [Table of Contents](#table-of-contents)
+  - [Usage](#usage)
+  - [todo](#todo)
+  - [example output](#example-output)
+<!--toc:end-->
+
+## Usage
+
+```sh
+NAME:
+   wami - What are my imports? (wami) is a cli for import analisys for go apps.
+
+USAGE:
+   wami [global options] [arguments...]
+
+GLOBAL OPTIONS:
+   --recursive, -r  enables recursive walking for ALL paths. If disabled, only paths ending with '...' are treated as recursive
+   --ignore-blank   ignore blank imports (e.g., '_ fmt')
+   --ignore-dot     ignore dot imports (e.g., '. fmt')
+   --ignore-same    ignore imports using the same alias as the original package (e.g., 'fmt fmt')
+   --min uint       minimal amount of usages to appear in the output (inclusive) (default: 0)
+   --max uint       maximum amount of usages to appear in the output (inclusive) (default: 0)
+   --help, -h       show help
+```
 
 ## todo
 
 - group by
 - strip prefix
 - strip suffix
-- ignore
-- min amount
-- max amount
 - aliases only
-- colored output
+- outputs:
+  - [x] text
+  - [ ] colored
+  - [ ] json
+  - [ ] csv
 - add benchmarks using hyperfine for big repos
   - k8s
   - docker
