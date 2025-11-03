@@ -16,10 +16,29 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-type options struct {
-	paths     []string
-	recursive bool
-}
+type (
+	options struct {
+		paths []string
+
+		// options related to parsing
+		parse parseOptions
+
+		// options related to output
+		output outputOptions
+	}
+
+	parseOptions struct {
+		recursive   bool
+		ignoreDot   bool
+		ignoreBlank bool
+		ignoreSame  bool
+	}
+
+	outputOptions struct {
+		min uint
+		max uint
+	}
+)
 
 func main() {
 	opts := options{}
@@ -32,14 +51,39 @@ func main() {
 				Name:        "recursive",
 				Aliases:     []string{"r"},
 				Usage:       "enables recursive walking for ALL paths. If disabled, only paths ending with '...' are treated as recursive",
-				Destination: &opts.recursive,
+				Destination: &opts.parse.recursive,
+			},
+			&cli.BoolFlag{
+				Name:        "ignore-blank",
+				Usage:       "ignore blank imports (e.g., '_ fmt')",
+				Destination: &opts.parse.ignoreBlank,
+			},
+			&cli.BoolFlag{
+				Name:        "ignore-dot",
+				Usage:       "ignore dot imports (e.g., '. fmt')",
+				Destination: &opts.parse.ignoreDot,
+			},
+			&cli.BoolFlag{
+				Name:        "ignore-same",
+				Usage:       "ignore imports using the same alias as the original package (e.g., 'fmt fmt')",
+				Destination: &opts.parse.ignoreDot,
+			},
+
+			&cli.UintFlag{
+				Name:        "min",
+				Usage:       "minimal amount of usages to appear in the output (inclusive)",
+				Destination: &opts.output.min,
+			},
+			&cli.UintFlag{
+				Name:        "max",
+				Usage:       "maximum amount of usages to appear in the output (inclusive)",
+				Destination: &opts.output.max,
 			},
 		},
 		Arguments: []cli.Argument{
 			&cli.StringArgs{
 				Name:        "path",
 				Destination: &opts.paths,
-				UsageText:   "123123",
 				Min:         1,
 				Max:         -1,
 				Config:      cli.StringConfig{TrimSpace: true},
@@ -56,7 +100,7 @@ func main() {
 				fmt.Printf("Error: %v\n", err)
 			}
 
-			printImports(list)
+			printImports(list, opts)
 
 			return nil
 		},
@@ -85,7 +129,7 @@ func parseFiles(list *importList, opts options) error {
 	mode := parser.ImportsOnly | parser.SkipObjectResolution
 
 	for _, path := range opts.paths {
-		isRecursive := opts.recursive || strings.HasSuffix(path, "...")
+		isRecursive := opts.parse.recursive || strings.HasSuffix(path, "...")
 		if err := filepath.WalkDir(path, func(path string, d fs.DirEntry, wdErr error) error {
 			if !strings.HasSuffix(path, ".go") {
 				return nil
@@ -117,7 +161,13 @@ func parseFiles(list *importList, opts options) error {
 					continue
 				}
 
+				addAsAliased := false
 				if imp.Name != nil {
+					name := imp.Name.Name
+					addAsAliased = (name != "." || !opts.parse.ignoreDot) && (name != "_" || !opts.parse.ignoreBlank)
+				}
+
+				if addAsAliased {
 					list.addAliased(imp.Path.Value, imp.Name.Name)
 				} else {
 					list.add(imp.Path.Value)
@@ -144,9 +194,16 @@ type printableAlias struct {
 	aliases map[string]uint
 }
 
-func printImports(list importList) {
+func printImports(list importList, opts options) {
 	listArr := make([]printableAlias, 0, len(list.imports))
 	for _, imp := range list.imports {
+		// TODO: better filter system
+
+		if opts.output.min > 0 && imp.total < (opts.output.min) ||
+			opts.output.max > 0 && imp.total > opts.output.max {
+			continue
+		}
+
 		listArr = append(listArr, printableAlias{
 			path:    imp.path,
 			usages:  imp.total,
