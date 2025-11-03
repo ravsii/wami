@@ -1,7 +1,10 @@
 package main
 
 type (
-	importList map[string]importItem
+	importList struct {
+		imports map[string]importItem
+	}
+
 	importItem struct {
 		path    string
 		total   uint
@@ -10,15 +13,15 @@ type (
 )
 
 func (l *importList) add(path string) {
-	(*l).addAliased(path, "")
+	l.addAliased(path, "")
 }
 
 func (l *importList) addAliased(path string, alias string) {
-	if len(*l) == 0 {
-		*l = make(importList)
+	if len(l.imports) == 0 {
+		l.imports = make(map[string]importItem)
 	}
 
-	item, ok := (*l)[path]
+	item, ok := l.imports[path]
 	if !ok {
 		item = importItem{
 			path: path,
@@ -34,5 +37,5 @@ func (l *importList) addAliased(path string, alias string) {
 		item.aliases[alias]++
 	}
 
-	(*l)[path] = item
+	l.imports[path] = item
 }
