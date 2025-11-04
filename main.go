@@ -66,7 +66,7 @@ func main() {
 			&cli.BoolFlag{
 				Name:        "ignore-same",
 				Usage:       "ignore imports using the same alias as the original package (e.g., 'fmt fmt')",
-				Destination: &opts.parse.ignoreDot,
+				Destination: &opts.parse.ignoreSame,
 			},
 
 			&cli.UintFlag{
@@ -164,7 +164,11 @@ func parseFiles(list *importList, opts options) error {
 				addAsAliased := false
 				if imp.Name != nil {
 					name := imp.Name.Name
-					addAsAliased = (name != "." || !opts.parse.ignoreDot) && (name != "_" || !opts.parse.ignoreBlank)
+					path := imp.Path.Value
+					path = strings.Trim(path, `"\`)
+					addAsAliased = (name != "." || !opts.parse.ignoreDot) && (name != "_" || !opts.parse.ignoreBlank) &&
+						(name != path || !opts.parse.ignoreSame)
+
 				}
 
 				if addAsAliased {
