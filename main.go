@@ -166,6 +166,9 @@ func parseFiles(list *importList, opts options) error {
 					name := imp.Name.Name
 					path := imp.Path.Value
 					path = strings.Trim(path, `"\`)
+					if strings.Contains(path, "/") {
+						path = filepath.Base(path)
+					}
 					addAsAliased = (name != "." || !opts.parse.ignoreDot) && (name != "_" || !opts.parse.ignoreBlank) &&
 						(name != path || !opts.parse.ignoreSame)
 
