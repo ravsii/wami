@@ -24,14 +24,14 @@ func (t *TextPrinter) Print(w io.Writer, imports []OutputImports) error {
 			usageStr = "usages"
 		}
 
-		fmt.Fprintf(&buf, "%s: %d total %s\n", imprt.Path, imprt.Count, usageStr)
+		fmt.Fprintf(&buf, "%q: %d total %s\n", imprt.Path, imprt.Count, usageStr)
 		for i, alias := range imprt.Aliases {
 			prefix := printItem
 			if i == len(imprt.Aliases)-1 {
 				prefix = printLastItem
 			}
 
-			fmt.Fprintf(&buf, "%4c %d usages as %s\n", prefix, alias.Count, alias.Alias)
+			fmt.Fprintf(&buf, "%4c %d usages as %q\n", prefix, alias.Count, alias.Alias)
 		}
 	}
 

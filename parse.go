@@ -23,6 +23,10 @@ func parseFiles(opts options) (*importStorage, error) {
 		}
 
 		if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, wdErr error) error {
+			if wdErr != nil {
+				return fmt.Errorf("error visiting %s: %w", path, wdErr)
+			}
+
 			if d.IsDir() {
 				if isRecursive || path == root {
 					return nil
@@ -33,10 +37,6 @@ func parseFiles(opts options) (*importStorage, error) {
 
 			if !strings.HasSuffix(path, ".go") {
 				return nil
-			}
-
-			if wdErr != nil {
-				return fmt.Errorf("error when visiting %s: %w", path, wdErr)
 			}
 
 			file, err := parser.ParseFile(fset, path, nil, mode)

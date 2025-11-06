@@ -1,5 +1,16 @@
 package main
 
+import (
+	"fmt"
+)
+
+type outputFormat string
+
+const (
+	textOutput outputFormat = "text"
+	jsonOutput outputFormat = "json"
+)
+
 type (
 	options struct {
 		paths []string
@@ -19,8 +30,9 @@ type (
 	}
 
 	outputOptions struct {
-		min uint
-		max uint
+		format outputFormat
+		max    uint
+		min    uint
 	}
 )
 
@@ -36,6 +48,15 @@ func (o *options) prepare() error {
 	o.paths = make([]string, 0, len(unique))
 	for p := range unique {
 		o.paths = append(o.paths, p)
+	}
+
+	switch o.output.format {
+	case "":
+		o.output.format = textOutput
+	case textOutput, jsonOutput:
+		break
+	default:
+		return fmt.Errorf("unknown output format: %s", o.output.format)
 	}
 
 	return nil

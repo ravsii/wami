@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"unsafe"
 
 	"github.com/urfave/cli/v3"
 )
@@ -16,6 +17,14 @@ func main() {
 		Name:  "wami",
 		Usage: "What are my imports? (wami) is a cli for import analisys for go apps.",
 		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "format",
+				Usage:       "output format (text, json)",
+				DefaultText: string(textOutput),
+				Aliases:     []string{"f"},
+				Destination: (*string)(unsafe.Pointer(&opts.output.format)),
+				Config:      cli.StringConfig{TrimSpace: true},
+			},
 			&cli.BoolFlag{
 				Name:        "recursive",
 				Aliases:     []string{"r"},
@@ -37,7 +46,6 @@ func main() {
 				Usage:       "ignore imports using the same alias as the original package (e.g., 'fmt fmt')",
 				Destination: &opts.parse.ignoreSame,
 			},
-
 			&cli.UintFlag{
 				Name:        "min",
 				Usage:       "minimal amount of usages to appear in the output (inclusive)",
@@ -77,8 +85,14 @@ func run(opts options) error {
 		return fmt.Errorf("can't parse: %w", err)
 	}
 
-	var printer Printer //nolint
-	printer = &TextPrinter{}
+	var printer Printer
+	switch opts.output.format {
+	case textOutput:
+		printer = &TextPrinter{}
+	case jsonOutput:
+		printer = &JsonPrinter{}
+	}
+
 	if err := printer.Print(os.Stdout, storage.intoOutput()); err != nil {
 		return fmt.Errorf("can't print: %w", err)
 	}

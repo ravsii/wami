@@ -9,13 +9,13 @@ type Printer interface {
 
 type (
 	OutputImports struct {
-		Path    string
-		Count   uint
-		Aliases []Alias
+		Path    string  `json:"path"`
+		Count   uint    `json:"count"`
+		Aliases []Alias `json:"aliases,omitempty"`
 	}
 
 	Alias struct {
-		Count uint
-		Alias string
+		Count uint   `json:"count"`
+		Alias string `json:"alias"`
 	}
 )

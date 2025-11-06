@@ -32,6 +32,7 @@ func (s *importStorage) add(path string) {
 }
 
 func (s *importStorage) addAliased(path, alias string) {
+	path = strings.Trim(path, `"\`)
 	item, ok := s.imports[path]
 	if !ok {
 		item = importItem{
@@ -52,15 +53,10 @@ func (s *importStorage) addAliased(path, alias string) {
 }
 
 func (s *importStorage) shouldAddAsAlias(path, alias string) bool {
-	if alias == "" {
-		return false
-	}
-
-	path = strings.Trim(filepath.Base(path), `"\`)
-
-	if alias == "." && s.opts.parse.ignoreDot ||
+	if alias == "" ||
+		alias == "." && s.opts.parse.ignoreDot ||
 		alias == "_" && s.opts.parse.ignoreBlank ||
-		alias == path && s.opts.parse.ignoreSame {
+		alias == filepath.Base(path) && s.opts.parse.ignoreSame {
 		return false
 	}
 
