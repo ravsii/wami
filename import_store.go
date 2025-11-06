@@ -33,6 +33,11 @@ func (s *importStorage) add(path string) {
 
 func (s *importStorage) addAliased(path, alias string) {
 	path = strings.Trim(path, `"\`)
+
+	if !s.shouldAddPath(path, alias) {
+		return
+	}
+
 	item, ok := s.imports[path]
 	if !ok {
 		item = importItem{
@@ -42,7 +47,7 @@ func (s *importStorage) addAliased(path, alias string) {
 
 	item.total++
 
-	if s.shouldAddAsAlias(path, alias) {
+	if s.shouldAddAlias(path, alias) {
 		if len(item.aliases) == 0 {
 			item.aliases = make(map[string]uint, 1)
 		}
@@ -52,7 +57,18 @@ func (s *importStorage) addAliased(path, alias string) {
 	s.imports[path] = item
 }
 
-func (s *importStorage) shouldAddAsAlias(path, alias string) bool {
+func (s *importStorage) shouldAddPath(path, alias string) bool {
+	if s.opts.parse.include != nil && !s.opts.parse.include.MatchString(path) ||
+		s.opts.parse.ignore != nil && s.opts.parse.ignore.MatchString(path) ||
+		s.opts.parse.includeAlias != nil && !s.opts.parse.includeAlias.MatchString(alias) ||
+		s.opts.parse.ignoreAlias != nil && s.opts.parse.ignoreAlias.MatchString(alias) {
+		return false
+	}
+
+	return true
+}
+
+func (s *importStorage) shouldAddAlias(path, alias string) bool {
 	if alias == "" ||
 		alias == "." && s.opts.parse.ignoreDot ||
 		alias == "_" && s.opts.parse.ignoreBlank ||

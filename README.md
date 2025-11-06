@@ -24,8 +24,13 @@ USAGE:
    wami [global options] [arguments...]
 
 GLOBAL OPTIONS:
+   --aliases-only, -a          only output imports that have aliases. Note: all imports will be parsed anyways, for a total amount of usages
    --format string, -f string  output format (text, json) (default: text)
    --recursive, -r             enables recursive walking for ALL paths. If disabled, only paths ending with '...' are treated as recursive
+   --include string            regexp to include import paths
+   --include-alias string      regexp to include import aliases
+   --ignore string             regexp to ignore import paths
+   --ignore-alias string       regexp to ignore import aliases
    --ignore-blank              ignore blank imports (e.g., '_ fmt')
    --ignore-dot                ignore dot imports (e.g., '. fmt')
    --ignore-same               ignore imports using the same alias as the original package (e.g., 'fmt fmt')
@@ -37,9 +42,7 @@ GLOBAL OPTIONS:
 ## todo
 
 - group by
-- strip prefix
-- strip suffix
-- aliases only
+- alias files?
 - outputs:
   - [x] text
   - [ ] colored

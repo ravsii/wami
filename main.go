@@ -37,6 +37,33 @@ func main() {
 				Usage:       "enables recursive walking for ALL paths. If disabled, only paths ending with '...' are treated as recursive",
 				Destination: &opts.parse.recursive,
 			},
+			&cli.StringFlag{
+				Name:        "include",
+				Usage:       "regexp to include import paths",
+				Destination: &opts.parse._includeStr,
+				Config:      cli.StringConfig{TrimSpace: true},
+			},
+
+			&cli.StringFlag{
+				Name:        "include-alias",
+				Usage:       "regexp to include import aliases",
+				Destination: &opts.parse._includeAliasStr,
+				Config:      cli.StringConfig{TrimSpace: true},
+			},
+
+			&cli.StringFlag{
+				Name:        "ignore",
+				Usage:       "regexp to ignore import paths",
+				Destination: &opts.parse._ignoreStr,
+				Config:      cli.StringConfig{TrimSpace: true},
+			},
+
+			&cli.StringFlag{
+				Name:        "ignore-alias",
+				Usage:       "regexp to ignore import aliases",
+				Destination: &opts.parse._ignoreAliasStr,
+				Config:      cli.StringConfig{TrimSpace: true},
+			},
 			&cli.BoolFlag{
 				Name:        "ignore-blank",
 				Usage:       "ignore blank imports (e.g., '_ fmt')",
