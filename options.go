@@ -30,9 +30,10 @@ type (
 	}
 
 	outputOptions struct {
-		format outputFormat
-		max    uint
-		min    uint
+		aliasesOnly bool
+		format      outputFormat
+		max         uint
+		min         uint
 	}
 )
 

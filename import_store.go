@@ -82,10 +82,9 @@ func (s *importStorage) intoOutput() []OutputImports {
 	imports := make([]OutputImports, 0, len(s.imports))
 
 	for _, imp := range s.imports {
-		// TODO: better filter system
-
 		if s.opts.output.min > 0 && imp.total < (s.opts.output.min) ||
-			s.opts.output.max > 0 && imp.total > s.opts.output.max {
+			s.opts.output.max > 0 && imp.total > s.opts.output.max ||
+			s.opts.output.aliasesOnly && len(imp.aliases) == 0 {
 			continue
 		}
 

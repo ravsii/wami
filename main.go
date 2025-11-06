@@ -17,6 +17,12 @@ func main() {
 		Name:  "wami",
 		Usage: "What are my imports? (wami) is a cli for import analisys for go apps.",
 		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:        "aliases-only",
+				Aliases:     []string{"a"},
+				Usage:       "only output imports that have aliases. Note: all imports will be parsed anyways, for a total amount of usages",
+				Destination: &opts.output.aliasesOnly,
+			},
 			&cli.StringFlag{
 				Name:        "format",
 				Usage:       "output format (text, json)",
