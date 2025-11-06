@@ -1,8 +1,16 @@
 package main
 
+import (
+	"cmp"
+	"path/filepath"
+	"slices"
+	"strings"
+)
+
 type (
-	importList struct {
+	importStorage struct {
 		imports map[string]importItem
+		opts    options
 	}
 
 	importItem struct {
@@ -12,16 +20,19 @@ type (
 	}
 )
 
-func (l *importList) add(path string) {
-	l.addAliased(path, "")
+func newStorage(opts options) importStorage {
+	return importStorage{
+		imports: make(map[string]importItem),
+		opts:    opts,
+	}
 }
 
-func (l *importList) addAliased(path string, alias string) {
-	if len(l.imports) == 0 {
-		l.imports = make(map[string]importItem)
-	}
+func (s *importStorage) add(path string) {
+	s.addAliased(path, "")
+}
 
-	item, ok := l.imports[path]
+func (s *importStorage) addAliased(path, alias string) {
+	item, ok := s.imports[path]
 	if !ok {
 		item = importItem{
 			path: path,
@@ -30,12 +41,73 @@ func (l *importList) addAliased(path string, alias string) {
 
 	item.total++
 
-	if alias != "" {
+	if s.shouldAddAsAlias(path, alias) {
 		if len(item.aliases) == 0 {
-			item.aliases = make(map[string]uint)
+			item.aliases = make(map[string]uint, 1)
 		}
 		item.aliases[alias]++
 	}
 
-	l.imports[path] = item
+	s.imports[path] = item
+}
+
+func (s *importStorage) shouldAddAsAlias(path, alias string) bool {
+	if alias == "" {
+		return false
+	}
+
+	path = strings.Trim(filepath.Base(path), `"\`)
+
+	if alias == "." && s.opts.parse.ignoreDot ||
+		alias == "_" && s.opts.parse.ignoreBlank ||
+		alias == path && s.opts.parse.ignoreSame {
+		return false
+	}
+
+	return true
+}
+
+var (
+	importDataCmp = func(a, b OutputImports) int {
+		return cmp.Or(
+			cmp.Compare(b.Count, a.Count),
+			cmp.Compare(a.Path, b.Path),
+		)
+	}
+	aliasCmp = func(a, b Alias) int {
+		return cmp.Or(
+			cmp.Compare(b.Count, a.Count),
+			cmp.Compare(a.Alias, b.Alias),
+		)
+	}
+)
+
+func (s *importStorage) intoOutput() []OutputImports {
+	imports := make([]OutputImports, 0, len(s.imports))
+
+	for _, imp := range s.imports {
+		// TODO: better filter system
+
+		if s.opts.output.min > 0 && imp.total < (s.opts.output.min) ||
+			s.opts.output.max > 0 && imp.total > s.opts.output.max {
+			continue
+		}
+
+		aliases := make([]Alias, 0, len(imp.aliases))
+		for alias, count := range imp.aliases {
+			aliases = append(aliases, Alias{Count: count, Alias: alias})
+		}
+
+		slices.SortFunc(aliases, aliasCmp)
+
+		imports = append(imports, OutputImports{
+			Path:    imp.path,
+			Count:   imp.total,
+			Aliases: aliases,
+		})
+	}
+
+	slices.SortFunc(imports, importDataCmp)
+
+	return imports
 }

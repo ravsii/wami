@@ -4,19 +4,17 @@ import "io"
 
 type Printer interface {
 	// Print should output data into w.
-	Print(w io.Writer, data ImportsData) error
+	Print(w io.Writer, data []OutputImports) error
 }
 
 type (
-	ImportsData []ImportData
-	ImportData  struct {
+	OutputImports struct {
 		Path    string
 		Count   uint
-		Aliases Aliases
+		Aliases []Alias
 	}
 
-	Aliases []Alias
-	Alias   struct {
+	Alias struct {
 		Count uint
 		Alias string
 	}

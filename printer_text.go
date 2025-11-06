@@ -15,7 +15,7 @@ var _ Printer = (*TextPrinter)(nil)
 
 type TextPrinter struct{}
 
-func (t *TextPrinter) Print(w io.Writer, imports ImportsData) error {
+func (t *TextPrinter) Print(w io.Writer, imports []OutputImports) error {
 	var buf bytes.Buffer
 
 	for _, imprt := range imports {

@@ -24,18 +24,18 @@ type (
 	}
 )
 
-// validateOptions checks and fixes any conflicting options (i.e. having both
+// prepare checks and fixes any conflicting options (i.e. having both
 // "./..." path and --recursive flag).
 // If it encounters an option it can't fix, an error is returned.
-func validateOptions() error {
+func (o *options) prepare() error {
 	unique := make(map[string]struct{})
-	for _, p := range opts.paths {
+	for _, p := range o.paths {
 		unique[p] = struct{}{}
 	}
 
-	opts.paths = make([]string, 0, len(unique))
+	o.paths = make([]string, 0, len(unique))
 	for p := range unique {
-		opts.paths = append(opts.paths, p)
+		o.paths = append(o.paths, p)
 	}
 
 	return nil

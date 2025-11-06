@@ -9,13 +9,13 @@ import (
 	"strings"
 )
 
-func parseFiles() (importList, error) {
+func parseFiles(opts options) (*importStorage, error) {
 	mode := parser.ImportsOnly | parser.SkipObjectResolution
 
-	var list importList
+	fset := token.NewFileSet()
+	storage := newStorage(opts)
 
 	for _, root := range opts.paths {
-		// isRecursive := opts.parse.recursive || strings.HasSuffix(path, "...")
 		isRecursive := opts.parse.recursive
 		if strings.HasSuffix(root, "...") {
 			isRecursive = true
@@ -36,11 +36,9 @@ func parseFiles() (importList, error) {
 			}
 
 			if wdErr != nil {
-				fmt.Printf("error when visiting %s: %v", path, wdErr)
-				return nil
+				return fmt.Errorf("error when visiting %s: %w", path, wdErr)
 			}
 
-			fset := token.NewFileSet()
 			file, err := parser.ParseFile(fset, path, nil, mode)
 			if err != nil {
 				fmt.Printf("Error parsing %s: %v\n", path, err)
@@ -53,31 +51,18 @@ func parseFiles() (importList, error) {
 					continue
 				}
 
-				addAsAliased := false
 				if imp.Name != nil {
-					name := imp.Name.Name
-					path := imp.Path.Value
-					path = strings.Trim(path, `"\`)
-					if strings.Contains(path, "/") {
-						path = filepath.Base(path)
-					}
-					addAsAliased = (name != "." || !opts.parse.ignoreDot) && (name != "_" || !opts.parse.ignoreBlank) &&
-						(name != path || !opts.parse.ignoreSame)
-
-				}
-
-				if addAsAliased {
-					list.addAliased(imp.Path.Value, imp.Name.Name)
+					storage.addAliased(imp.Path.Value, imp.Name.Name)
 				} else {
-					list.add(imp.Path.Value)
+					storage.add(imp.Path.Value)
 				}
 			}
 
 			return nil
 		}); err != nil {
-			return importList{}, err
+			return nil, fmt.Errorf("walkDir: %w", err)
 		}
 	}
 
-	return list, nil
+	return &storage, nil
 }
