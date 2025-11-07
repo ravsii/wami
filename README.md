@@ -43,6 +43,8 @@ GLOBAL OPTIONS:
 
 - group by
 - alias files?
+- custom flags
+- move validation to CLI
 - outputs:
   - [x] text
   - [ ] colored
