@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
+	"sort"
 	"unsafe"
 
 	"github.com/urfave/cli/v3"
@@ -26,10 +28,18 @@ func main() {
 			&cli.StringFlag{
 				Name:        "format",
 				Usage:       "output format (text, json)",
-				DefaultText: string(textOutput),
+				Value:       formatText,
 				Aliases:     []string{"f"},
 				Destination: (*string)(unsafe.Pointer(&opts.output.format)),
 				Config:      cli.StringConfig{TrimSpace: true},
+				Action: func(_ context.Context, _ *cli.Command, format string) error {
+					switch format {
+					case formatText, formatJson:
+						return nil
+					default:
+						return fmt.Errorf("unknown format: %s", format)
+					}
+				},
 			},
 			&cli.BoolFlag{
 				Name:        "recursive",
@@ -38,31 +48,29 @@ func main() {
 				Destination: &opts.parse.recursive,
 			},
 			&cli.StringFlag{
-				Name:        "include",
-				Usage:       "regexp to include import paths",
-				Destination: &opts.parse._includeStr,
-				Config:      cli.StringConfig{TrimSpace: true},
+				Name:   "include",
+				Usage:  "`regexp` to include import paths",
+				Config: cli.StringConfig{TrimSpace: true},
+				Action: makeParseRegexFunc(&opts.parse.include),
+			},
+			&cli.StringFlag{
+				Name:   "include-alias",
+				Usage:  "`regexp` to include import aliases",
+				Config: cli.StringConfig{TrimSpace: true},
+				Action: makeParseRegexFunc(&opts.parse.includeAlias),
+			},
+			&cli.StringFlag{
+				Name:   "ignore",
+				Usage:  "`regexp` to ignore import paths",
+				Config: cli.StringConfig{TrimSpace: true},
+				Action: makeParseRegexFunc(&opts.parse.ignore),
 			},
 
 			&cli.StringFlag{
-				Name:        "include-alias",
-				Usage:       "regexp to include import aliases",
-				Destination: &opts.parse._includeAliasStr,
-				Config:      cli.StringConfig{TrimSpace: true},
-			},
-
-			&cli.StringFlag{
-				Name:        "ignore",
-				Usage:       "regexp to ignore import paths",
-				Destination: &opts.parse._ignoreStr,
-				Config:      cli.StringConfig{TrimSpace: true},
-			},
-
-			&cli.StringFlag{
-				Name:        "ignore-alias",
-				Usage:       "regexp to ignore import aliases",
-				Destination: &opts.parse._ignoreAliasStr,
-				Config:      cli.StringConfig{TrimSpace: true},
+				Name:   "ignore-alias",
+				Usage:  "`regexp` to ignore import aliases",
+				Config: cli.StringConfig{TrimSpace: true},
+				Action: makeParseRegexFunc(&opts.parse.ignoreAlias),
 			},
 			&cli.BoolFlag{
 				Name:        "ignore-blank",
@@ -93,19 +101,24 @@ func main() {
 		Arguments: []cli.Argument{
 			&cli.StringArgs{
 				Name:        "path",
+				UsageText:   "list of directories to parse for imports. For recursion see -r flag",
 				Destination: &opts.paths,
-				Min:         1,
+				Min:         0,
 				Max:         -1,
 				Config:      cli.StringConfig{TrimSpace: true},
+				Value:       "./...",
 			},
 		},
 		Action: func(ctx context.Context, c *cli.Command) error {
-			if err := opts.prepare(); err != nil {
-				return fmt.Errorf("can't validate options: %w", err)
+			if len(opts.paths) == 0 {
+				opts.paths = []string{"./..."}
 			}
+
 			return run(opts)
 		},
 	}
+
+	sort.Sort(cli.FlagsByName(cmd.Flags))
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
 		log.Fatal(err)
@@ -120,9 +133,9 @@ func run(opts options) error {
 
 	var printer Printer
 	switch opts.output.format {
-	case textOutput:
+	case formatText:
 		printer = &TextPrinter{}
-	case jsonOutput:
+	case formatJson:
 		printer = &JsonPrinter{}
 	}
 
@@ -131,4 +144,20 @@ func run(opts options) error {
 	}
 
 	return nil
+}
+
+func makeParseRegexFunc(dst **regexp.Regexp) func(context.Context, *cli.Command, string) error {
+	return func(_ context.Context, _ *cli.Command, regexStr string) error {
+		if regexStr == "" {
+			return nil
+		}
+
+		parsedRegex, err := regexp.Compile(regexStr)
+		if err != nil {
+			return fmt.Errorf("can't parse regex %q: %w", regexStr, err)
+		}
+
+		*dst = parsedRegex
+		return nil
+	}
 }
