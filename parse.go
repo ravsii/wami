@@ -15,6 +15,9 @@ func parseFiles(opts options) (*importStorage, error) {
 	fset := token.NewFileSet()
 	storage := newStorage(opts)
 
+	// struct{} is probably more efficient, but bool is way cleaner
+	seen := make(map[string]bool, len(opts.paths))
+
 	for _, root := range opts.paths {
 		isRecursive := opts.parse.recursive
 		if strings.HasSuffix(root, "...") {
@@ -35,9 +38,10 @@ func parseFiles(opts options) (*importStorage, error) {
 				return filepath.SkipDir
 			}
 
-			if !strings.HasSuffix(path, ".go") {
+			if !strings.HasSuffix(path, ".go") || seen[path] {
 				return nil
 			}
+			seen[path] = true
 
 			file, err := parser.ParseFile(fset, path, nil, mode)
 			if err != nil {
