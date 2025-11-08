@@ -20,7 +20,7 @@ func parseFiles(opts options) (*importStorage, error) {
 
 	for _, root := range opts.paths {
 		isRecursive := opts.parse.recursive
-		if strings.HasSuffix(root, "...") {
+		if strings.HasSuffix(root, "/...") {
 			isRecursive = true
 			root = root[:len(root)-3]
 		}

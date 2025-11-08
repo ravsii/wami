@@ -5,8 +5,9 @@ import (
 )
 
 const (
-	formatText = "text"
-	formatJson = "json"
+	formatText        = "text"
+	formatTextColored = "text-colored"
+	formatJson        = "json"
 )
 
 type (

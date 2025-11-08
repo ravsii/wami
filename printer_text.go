@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+
+	"github.com/fatih/color"
 )
 
 const (
@@ -13,10 +15,18 @@ const (
 
 var _ Printer = (*TextPrinter)(nil)
 
-type TextPrinter struct{}
+type TextPrinter struct{ colored bool }
+
+var (
+	colorName   = color.New(color.FgHiRed, color.Bold, color.Italic).SprintFunc()
+	colorCount  = color.New(color.FgHiYellow).SprintFunc()
+	colorPrefix = color.New(color.FgHiBlack).SprintFunc()
+	colorAlias  = color.New(color.FgHiBlue, color.Italic).SprintFunc()
+)
 
 func (t *TextPrinter) Print(w io.Writer, imports []OutputImports) error {
 	var buf bytes.Buffer
+	color.NoColor = !t.colored
 
 	for _, imprt := range imports {
 		usageStr := "usage"
@@ -24,14 +34,14 @@ func (t *TextPrinter) Print(w io.Writer, imports []OutputImports) error {
 			usageStr = "usages"
 		}
 
-		fmt.Fprintf(&buf, "%q: %d total %s\n", imprt.Path, imprt.Count, usageStr)
+		fmt.Fprintf(&buf, "%s: %s total %s\n", colorName(imprt.Path), colorCount(imprt.Count), usageStr)
 		for i, alias := range imprt.Aliases {
 			prefix := printItem
 			if i == len(imprt.Aliases)-1 {
 				prefix = printLastItem
 			}
 
-			fmt.Fprintf(&buf, "%4c %d usages as %q\n", prefix, alias.Count, alias.Alias)
+			fmt.Fprintf(&buf, "%1c%s %s usages as %s\n", ' ', colorPrefix(string(prefix)), colorCount(alias.Count), colorAlias(alias.Alias))
 		}
 	}
 

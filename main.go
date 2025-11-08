@@ -7,7 +7,6 @@ import (
 	"os"
 	"regexp"
 	"sort"
-	"unsafe"
 
 	"github.com/urfave/cli/v3"
 )
@@ -19,6 +18,8 @@ func main() {
 		Name:  "wami",
 		Usage: "What are my imports? (wami) is a cli for import analisys for go apps.",
 		Flags: []cli.Flag{
+			// just add flags as they're being made.
+			// We're sorting them afterwards.
 			&cli.BoolFlag{
 				Name:        "aliases-only",
 				Aliases:     []string{"a"},
@@ -28,13 +29,13 @@ func main() {
 			&cli.StringFlag{
 				Name:        "format",
 				Usage:       "output format (text, json)",
-				Value:       formatText,
+				Value:       formatTextColored,
 				Aliases:     []string{"f"},
-				Destination: (*string)(unsafe.Pointer(&opts.output.format)),
+				Destination: &opts.output.format,
 				Config:      cli.StringConfig{TrimSpace: true},
 				Action: func(_ context.Context, _ *cli.Command, format string) error {
 					switch format {
-					case formatText, formatJson:
+					case formatText, formatTextColored, formatJson:
 						return nil
 					default:
 						return fmt.Errorf("unknown format: %s", format)
@@ -135,6 +136,8 @@ func run(opts options) error {
 	switch opts.output.format {
 	case formatText:
 		printer = &TextPrinter{}
+	case formatTextColored:
+		printer = &TextPrinter{colored: true}
 	case formatJson:
 		printer = &JsonPrinter{}
 	}

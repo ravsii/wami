@@ -1,17 +1,17 @@
 # wami - What Are My Imports?
 
-wami, or What Are My Imports? - is a tool for go projects to analyze imports and
+wami, or "What Are My Imports?" - is a tool for go projects to analyze imports and
 their aliases. It has a lot of options, filters and output formats so it could
 be integrated with other tools very easily.
 
 ## Table of Contents
 
 <!--toc:start-->
-- [wami](#wami)
+- [wami - What Are My Imports?](#wami-what-are-my-imports)
   - [Table of Contents](#table-of-contents)
   - [Usage](#usage)
   - [todo](#todo)
-  - [example output](#example-output)
+  - [Example](#example)
 <!--toc:end-->
 
 ## Usage
@@ -25,27 +25,26 @@ USAGE:
 
 GLOBAL OPTIONS:
    --aliases-only, -a          only output imports that have aliases. Note: all imports will be parsed anyways, for a total amount of usages
-   --format string, -f string  output format (text, json) (default: text)
-   --recursive, -r             enables recursive walking for ALL paths. If disabled, only paths ending with '...' are treated as recursive
-   --include string            regexp to include import paths
-   --include-alias string      regexp to include import aliases
-   --ignore string             regexp to ignore import paths
-   --ignore-alias string       regexp to ignore import aliases
+   --format string, -f string  output format (text, json) (default: "text")
+   --ignore regexp             regexp to ignore import paths
+   --ignore-alias regexp       regexp to ignore import aliases
    --ignore-blank              ignore blank imports (e.g., '_ fmt')
    --ignore-dot                ignore dot imports (e.g., '. fmt')
    --ignore-same               ignore imports using the same alias as the original package (e.g., 'fmt fmt')
-   --min uint                  minimal amount of usages to appear in the output (inclusive) (default: 0)
+   --include regexp            regexp to include import paths
+   --include-alias regexp      regexp to include import aliases
    --max uint                  maximum amount of usages to appear in the output (inclusive) (default: 0)
+   --min uint                  minimal amount of usages to appear in the output (inclusive) (default: 0)
+   --recursive, -r             enables recursive walking for ALL paths. If disabled, only paths ending with '...' are treated as recursive
    --help, -h                  show help
 ```
 
 ## todo
 
 - group by
-- alias files?
 - outputs:
   - [x] text
-  - [ ] colored
+  - [x] colored
   - [x] json
   - [ ] csv
 
