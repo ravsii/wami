@@ -35,7 +35,7 @@ func main() {
 				Config:      cli.StringConfig{TrimSpace: true},
 				Action: func(_ context.Context, _ *cli.Command, format string) error {
 					switch format {
-					case formatText, formatTextColored, formatJson:
+					case formatText, formatTextColored, formatJson, formatCsv:
 						return nil
 					default:
 						return fmt.Errorf("unknown format: %s", format)
@@ -140,6 +140,8 @@ func run(opts options) error {
 		printer = &TextPrinter{colored: true}
 	case formatJson:
 		printer = &JsonPrinter{}
+	case formatCsv:
+		printer = &CsvPrinter{}
 	}
 
 	if err := printer.Print(os.Stdout, storage.intoOutput()); err != nil {

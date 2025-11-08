@@ -8,6 +8,7 @@ const (
 	formatText        = "text"
 	formatTextColored = "text-colored"
 	formatJson        = "json"
+	formatCsv         = "csv"
 )
 
 type (

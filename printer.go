@@ -16,6 +16,6 @@ type (
 
 	Alias struct {
 		Count uint   `json:"count"`
-		Alias string `json:"alias"`
+		Path  string `json:"alias"`
 	}
 )
