@@ -28,7 +28,7 @@ func main() {
 			},
 			&cli.StringFlag{
 				Name:        "format",
-				Usage:       "output format (text, json)",
+				Usage:       "output format (text, text-colored, json, csv)",
 				Value:       formatTextColored,
 				Aliases:     []string{"f"},
 				Destination: &opts.output.format,

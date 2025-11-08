@@ -1,16 +1,15 @@
-# wami - What Are My Imports?
+# wami
 
-wami, or "What Are My Imports?" - is a tool for go projects to analyze imports and
-their aliases. It has a lot of options, filters and output formats so it could
-be integrated with other tools very easily.
+**wami** ("What Are My Imports?") is a tool for Go projects that analyzes
+imports and their aliases. It offers a wide range of options, filters, and
+output formats, making it easy to integrate with other tools.
 
 ## Table of Contents
 
 <!--toc:start-->
-- [wami - What Are My Imports?](#wami-what-are-my-imports)
+- [wami](#wami)
   - [Table of Contents](#table-of-contents)
   - [Usage](#usage)
-  - [todo](#todo)
   - [Example](#example)
 <!--toc:end-->
 
@@ -25,7 +24,7 @@ USAGE:
 
 GLOBAL OPTIONS:
    --aliases-only, -a          only output imports that have aliases. Note: all imports will be parsed anyways, for a total amount of usages
-   --format string, -f string  output format (text, json) (default: "text")
+   --format string, -f string  output format (text, text-colored, json, csv) (default: "text-colored")
    --ignore regexp             regexp to ignore import paths
    --ignore-alias regexp       regexp to ignore import aliases
    --ignore-blank              ignore blank imports (e.g., '_ fmt')
@@ -39,53 +38,106 @@ GLOBAL OPTIONS:
    --help, -h                  show help
 ```
 
-## todo
-
-- group by
-- outputs:
-  - [x] text
-  - [x] colored
-  - [x] json
-  - [ ] csv
-
 ## Example
 
-Example output running on kubernetes repo:
+Here’s an example output in multiple formats, generated from the
+[Kubernetes](https://github.com/kubernetes/kubernetes) repository — one of the
+largest Go projects:
 
 ```sh
-> go run . <path> --min 100 --max 110 --ignore-same --ignore-blank
+> wami <path> --min 300 --max 350
 ```
 
+---
+
+<details>
+<summary>🧾 Text output</summary>
+
 ```sh
-"k8s.io/component-base/featuregate": 110 total usages
-"k8s.io/kubectl/pkg/scheme": 110 total usages
-"github.com/google/cel-go/common/types": 109 total usages
-   └ 6 usages as "celtypes"
-"k8s.io/cli-runtime/pkg/genericclioptions": 108 total usages
-"sigs.k8s.io/yaml": 105 total usages
-   ├ 3 usages as "k8syaml"
-   ├ 1 usages as "sigsyaml"
-   └ 1 usages as "sigyaml"
-"k8s.io/apimachinery/pkg/util/net": 103 total usages
-   ├ 72 usages as "utilnet"
-   ├ 7 usages as "netutil"
-   ├ 1 usages as "apiutil"
-   └ 1 usages as "machineryutilnet"
-"k8s.io/kubernetes/test/e2e/framework/node": 103 total usages
-   └ 103 usages as "e2enode"
-"k8s.io/kubectl/pkg/util/templates": 102 total usages
-"k8s.io/utils/clock/testing": 102 total usages
-   ├ 77 usages as "testingclock"
-   ├ 10 usages as "clocktesting"
-   ├ 9 usages as "testclock"
-   ├ 4 usages as "testclocks"
-   ├ 1 usages as "baseclocktest"
-   └ 1 usages as "clock"
-"sigs.k8s.io/structured-merge-diff/v6/fieldpath": 102 total usages
-"github.com/google/cadvisor/info/v1": 101 total usages
-   ├ 40 usages as "cadvisorapi"
-   ├ 39 usages as "info"
-   ├ 7 usages as "cadvisorapiv1"
-   ├ 1 usages as "cadvisorv1"
-   └ 1 usages as "v10"
+k8s.io/client-go/kubernetes/scheme: 349 total usages
+ ├ 210 usages as scheme
+ ├ 13 usages as clientscheme
+ ├ 6 usages as clientsetscheme
+ ├ 3 usages as k8sscheme
+ ├ 2 usages as clientgoscheme
+ ├ 1 usages as cgoscheme
+ ├ 1 usages as clientgokubescheme
+ ├ 1 usages as kubernetesscheme
+ └ 1 usages as typedscheme
+syscall: 345 total usages
+regexp: 342 total usages
+ └ 1 usages as re
+k8s.io/apimachinery/pkg/api/equality: 320 total usages
+ ├ 215 usages as apiequality
+ └ 62 usages as equality
+github.com/onsi/gomega: 317 total usages
+ ├ 8 usages as .
+ └ 2 usages as o
 ```
+
+</details>
+
+---
+
+<details>
+<summary>📦 JSON output</summary>
+
+```json
+[
+  {
+    "path": "k8s.io/client-go/kubernetes/scheme",
+    "count": 349,
+    "aliases": [
+      { "count": 210, "alias": "scheme" },
+      { "count": 13, "alias": "clientscheme" },
+      { "count": 6, "alias": "clientsetscheme" },
+      { "count": 3, "alias": "k8sscheme" },
+      { "count": 2, "alias": "clientgoscheme" },
+      { "count": 1, "alias": "cgoscheme" },
+      { "count": 1, "alias": "clientgokubescheme" },
+      { "count": 1, "alias": "kubernetesscheme" },
+      { "count": 1, "alias": "typedscheme" }
+    ]
+  },
+  { "path": "syscall", "count": 345 },
+  {
+    "path": "regexp",
+    "count": 342,
+    "aliases": [{ "count": 1, "alias": "re" }]
+  },
+  {
+    "path": "k8s.io/apimachinery/pkg/api/equality",
+    "count": 320,
+    "aliases": [
+      { "count": 215, "alias": "apiequality" },
+      { "count": 62, "alias": "equality" }
+    ]
+  },
+  {
+    "path": "github.com/onsi/gomega",
+    "count": 317,
+    "aliases": [
+      { "count": 8, "alias": "." },
+      { "count": 2, "alias": "o" }
+    ]
+  }
+]
+```
+
+</details>
+
+---
+
+<details>
+<summary>📊 CSV output</summary>
+
+```csv
+import,count,aliases
+k8s.io/client-go/kubernetes/scheme,349,"210,scheme;13,clientscheme;6,clientsetscheme;3,k8sscheme;2,clientgoscheme;1,cgoscheme;1,clientgokubescheme;1,kubernetesscheme;1,typedscheme"
+syscall,345,
+regexp,342,"1,re"
+k8s.io/apimachinery/pkg/api/equality,320,"215,apiequality;62,equality"
+github.com/onsi/gomega,317,"8,.;2,o"
+```
+
+</details>
