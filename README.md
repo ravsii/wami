@@ -1,6 +1,6 @@
 # wami
 
-[![codecov](https://codecov.io/github/ravsii/wami/graph/badge.svg?token=3sQsbMyLJX)](https://codecov.io/github/ravsii/wami) [![Go Reference](https://pkg.go.dev/badge/github.com/ravsii/wami.svg)](https://pkg.go.dev/github.com/ravsii/wami)
+[![Build](https://github.com/ravsii/wami/actions/workflows/build.yml/badge.svg)](https://github.com/ravsii/wami/actions/workflows/build.yml) [![Test](https://github.com/ravsii/wami/actions/workflows/test.yml/badge.svg)](https://github.com/ravsii/wami/actions/workflows/test.yml) [![codecov](https://codecov.io/github/ravsii/wami/graph/badge.svg?token=3sQsbMyLJX)](https://codecov.io/github/ravsii/wami) [![Go Reference](https://pkg.go.dev/badge/github.com/ravsii/wami.svg)](https://pkg.go.dev/github.com/ravsii/wami)
 
 **wami** ("What Are My Imports?") is a tool for Go projects that analyzes
 imports and their aliases. It offers a wide range of options, filters, and
