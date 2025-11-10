@@ -10,7 +10,10 @@ output formats, making it easy to integrate with other tools.
 - [wami](#wami)
   - [Table of Contents](#table-of-contents)
   - [Usage](#usage)
-  - [Example](#example)
+  - [Outputs](#outputs)
+    - [Text output](#text-output)
+    - [JSON output](#json-output)
+    - [CSV output](#csv-output)
 <!--toc:end-->
 
 ## Usage
@@ -48,7 +51,7 @@ largest Go projects:
 > wami <path> --min 300 --max 350
 ````
 
-### 🧾 Text output
+### Text output
 
 <details>
 <summary>Show example</summary>
@@ -77,7 +80,7 @@ github.com/onsi/gomega: 317 total usages
 
 </details>
 
-### 📦 JSON output
+### JSON output
 
 <details>
 <summary>Show example</summary>
@@ -173,7 +176,7 @@ github.com/onsi/gomega: 317 total usages
 
 </details>
 
-### 📊 CSV output
+### CSV output
 
 Alias column has the following format:
 
