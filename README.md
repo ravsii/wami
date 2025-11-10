@@ -1,5 +1,9 @@
 # wami
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/ravsii/wami.svg)](https://pkg.go.dev/github.com/ravsii/wami)
+
+---
+
 **wami** ("What Are My Imports?") is a tool for Go projects that analyzes
 imports and their aliases. It offers a wide range of options, filters, and
 output formats, making it easy to integrate with other tools.
