@@ -2,7 +2,9 @@ name: Codecov coverage
 
 on:
   push:
-  pull_request:
+    branches:
+      - main
+      - workflow-test
 
 jobs:
   test:
