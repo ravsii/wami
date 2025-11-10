@@ -52,7 +52,7 @@ GLOBAL OPTIONS:
 ## Outputs
 
 Here’s an example output in multiple formats, generated from the
-[Kubernetes](https://github.com/kubernetes/kubernetes) repository — one of the
+[`kubernetes`](https://github.com/kubernetes/kubernetes) repository - one of the
 largest Go projects:
 
 ```sh
