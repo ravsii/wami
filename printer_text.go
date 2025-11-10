@@ -41,7 +41,7 @@ func (t *TextPrinter) Print(w io.Writer, imports []OutputImports) error {
 				prefix = printLastItem
 			}
 
-			fmt.Fprintf(&buf, "%1c%s %s usages as %s\n", ' ', colorPrefix(string(prefix)), colorCount(alias.Count), colorAlias(alias.Path))
+			fmt.Fprintf(&buf, "%1c%s %s usages as %s\n", ' ', colorPrefix(string(prefix)), colorCount(alias.Count), colorAlias(alias.Name))
 		}
 	}
 

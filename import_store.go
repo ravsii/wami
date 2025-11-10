@@ -89,7 +89,7 @@ var (
 	aliasCmp = func(a, b Alias) int {
 		return cmp.Or(
 			cmp.Compare(b.Count, a.Count),
-			cmp.Compare(a.Path, b.Path),
+			cmp.Compare(a.Name, b.Name),
 		)
 	}
 )
@@ -106,7 +106,7 @@ func (s *importStorage) intoOutput() []OutputImports {
 
 		aliases := make([]Alias, 0, len(imp.aliases))
 		for alias, count := range imp.aliases {
-			aliases = append(aliases, Alias{Count: count, Path: alias})
+			aliases = append(aliases, Alias{Count: count, Name: alias})
 		}
 
 		slices.SortFunc(aliases, aliasCmp)

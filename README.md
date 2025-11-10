@@ -88,37 +88,84 @@ github.com/onsi/gomega: 317 total usages
     "path": "k8s.io/client-go/kubernetes/scheme",
     "count": 349,
     "aliases": [
-      { "count": 210, "alias": "scheme" },
-      { "count": 13, "alias": "clientscheme" },
-      { "count": 6, "alias": "clientsetscheme" },
-      { "count": 3, "alias": "k8sscheme" },
-      { "count": 2, "alias": "clientgoscheme" },
-      { "count": 1, "alias": "cgoscheme" },
-      { "count": 1, "alias": "clientgokubescheme" },
-      { "count": 1, "alias": "kubernetesscheme" },
-      { "count": 1, "alias": "typedscheme" }
+      {
+        "count": 210,
+        "name": "scheme"
+      },
+      {
+        "count": 13,
+        "name": "clientscheme"
+      },
+      {
+        "count": 6,
+        "name": "clientsetscheme"
+      },
+      {
+        "count": 3,
+        "name": "k8sscheme"
+      },
+      {
+        "count": 2,
+        "name": "clientgoscheme"
+      },
+      {
+        "count": 1,
+        "name": "cgoscheme"
+      },
+      {
+        "count": 1,
+        "name": "clientgokubescheme"
+      },
+      {
+        "count": 1,
+        "name": "kubernetesscheme"
+      },
+      {
+        "count": 1,
+        "name": "typedscheme"
+      }
     ]
   },
-  { "path": "syscall", "count": 345 },
+  {
+    "path": "syscall",
+    "count": 345
+  },
   {
     "path": "regexp",
     "count": 342,
-    "aliases": [{ "count": 1, "alias": "re" }]
+    "aliases": [
+      {
+        "count": 1,
+        "name": "re"
+      }
+    ]
   },
   {
     "path": "k8s.io/apimachinery/pkg/api/equality",
     "count": 320,
     "aliases": [
-      { "count": 215, "alias": "apiequality" },
-      { "count": 62, "alias": "equality" }
+      {
+        "count": 215,
+        "name": "apiequality"
+      },
+      {
+        "count": 62,
+        "name": "equality"
+      }
     ]
   },
   {
     "path": "github.com/onsi/gomega",
     "count": 317,
     "aliases": [
-      { "count": 8, "alias": "." },
-      { "count": 2, "alias": "o" }
+      {
+        "count": 8,
+        "name": "."
+      },
+      {
+        "count": 2,
+        "name": "o"
+      }
     ]
   }
 ]

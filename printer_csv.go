@@ -33,7 +33,7 @@ func (t *CsvPrinter) Print(w io.Writer, imports []OutputImports) error {
 			aliases := make([]string, 0, len(imprt.Aliases))
 			for _, alias := range imprt.Aliases {
 				count := strconv.FormatUint(uint64(alias.Count), 10)
-				aliases = append(aliases, count+","+alias.Path)
+				aliases = append(aliases, count+","+alias.Name)
 			}
 			record[2] = strings.Join(aliases, ";")
 		}
