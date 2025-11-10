@@ -38,7 +38,7 @@ GLOBAL OPTIONS:
    --help, -h                  show help
 ```
 
-## Example
+## Outputs
 
 Here’s an example output in multiple formats, generated from the
 [Kubernetes](https://github.com/kubernetes/kubernetes) repository — one of the
@@ -46,12 +46,12 @@ largest Go projects:
 
 ```sh
 > wami <path> --min 300 --max 350
-```
+````
 
----
+### 🧾 Text output
 
 <details>
-<summary>🧾 Text output</summary>
+<summary>Show example</summary>
 
 ```sh
 k8s.io/client-go/kubernetes/scheme: 349 total usages
@@ -77,10 +77,10 @@ github.com/onsi/gomega: 317 total usages
 
 </details>
 
----
+### 📦 JSON output
 
 <details>
-<summary>📦 JSON output</summary>
+<summary>Show example</summary>
 
 ```json
 [
@@ -126,10 +126,16 @@ github.com/onsi/gomega: 317 total usages
 
 </details>
 
----
+### 📊 CSV output
+
+Alias column has the following format:
+
+```csv
+"<count1>,<alias1>;<count2>,<alias2>;..."
+```
 
 <details>
-<summary>📊 CSV output</summary>
+<summary>Show example</summary>
 
 ```csv
 import,count,aliases
