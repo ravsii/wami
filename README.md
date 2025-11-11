@@ -21,7 +21,7 @@ output formats, making it easy to integrate with other tools.
 ## Install
 
 ```sh
-go install github.com/ravsii/wami@latest
+go install github.com/ravsii/wami/cmd/wami@latest
 ```
 
 ## Usage
