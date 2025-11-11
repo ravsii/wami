@@ -8,15 +8,16 @@ import (
 	"regexp"
 	"sort"
 
+	. "github.com/ravsii/wami" //nolint
 	"github.com/urfave/cli/v3"
 )
 
 func main() {
-	var opts options
+	var opts Options
 
 	cmd := cli.Command{
 		Name:  "wami",
-		Usage: "What are my imports? (wami) is a cli for import analisys for go apps.",
+		Usage: "What are my imports? (wami) is a cli for import analysis for go apps.",
 		Flags: []cli.Flag{
 			// just add flags as they're being made.
 			// We're sorting them afterwards.
@@ -24,18 +25,18 @@ func main() {
 				Name:        "aliases-only",
 				Aliases:     []string{"a"},
 				Usage:       "only output imports that have aliases. Note: all imports will be parsed anyways, for a total amount of usages",
-				Destination: &opts.output.aliasesOnly,
+				Destination: &opts.Output.AliasesOnly,
 			},
 			&cli.StringFlag{
 				Name:        "format",
 				Usage:       "output format (text, text-colored, json, csv)",
-				Value:       formatTextColored,
+				Value:       FormatTextColored,
 				Aliases:     []string{"f"},
-				Destination: &opts.output.format,
+				Destination: &opts.Output.Format,
 				Config:      cli.StringConfig{TrimSpace: true},
 				Action: func(_ context.Context, _ *cli.Command, format string) error {
 					switch format {
-					case formatText, formatTextColored, formatJson, formatCsv:
+					case FormatText, FormatTextColored, FormatJson, FormatCsv:
 						return nil
 					default:
 						return fmt.Errorf("unknown format: %s", format)
@@ -46,64 +47,64 @@ func main() {
 				Name:        "recursive",
 				Aliases:     []string{"r"},
 				Usage:       "enables recursive walking for ALL paths. If disabled, only paths ending with '...' are treated as recursive",
-				Destination: &opts.parse.recursive,
+				Destination: &opts.Parse.Recursive,
 			},
 			&cli.StringFlag{
 				Name:   "include",
 				Usage:  "`regexp` to include import paths",
 				Config: cli.StringConfig{TrimSpace: true},
-				Action: makeParseRegexFunc(&opts.parse.include),
+				Action: makeParseRegexFunc(&opts.Parse.Include),
 			},
 			&cli.StringFlag{
 				Name:   "include-alias",
 				Usage:  "`regexp` to include import aliases",
 				Config: cli.StringConfig{TrimSpace: true},
-				Action: makeParseRegexFunc(&opts.parse.includeAlias),
+				Action: makeParseRegexFunc(&opts.Parse.IncludeAlias),
 			},
 			&cli.StringFlag{
 				Name:   "ignore",
 				Usage:  "`regexp` to ignore import paths",
 				Config: cli.StringConfig{TrimSpace: true},
-				Action: makeParseRegexFunc(&opts.parse.ignore),
+				Action: makeParseRegexFunc(&opts.Parse.Ignore),
 			},
 
 			&cli.StringFlag{
 				Name:   "ignore-alias",
 				Usage:  "`regexp` to ignore import aliases",
 				Config: cli.StringConfig{TrimSpace: true},
-				Action: makeParseRegexFunc(&opts.parse.ignoreAlias),
+				Action: makeParseRegexFunc(&opts.Parse.IgnoreAlias),
 			},
 			&cli.BoolFlag{
 				Name:        "ignore-blank",
 				Usage:       "ignore blank imports (e.g., '_ fmt')",
-				Destination: &opts.parse.ignoreBlank,
+				Destination: &opts.Parse.IgnoreBlank,
 			},
 			&cli.BoolFlag{
 				Name:        "ignore-dot",
 				Usage:       "ignore dot imports (e.g., '. fmt')",
-				Destination: &opts.parse.ignoreDot,
+				Destination: &opts.Parse.IgnoreDot,
 			},
 			&cli.BoolFlag{
 				Name:        "ignore-same",
 				Usage:       "ignore imports using the same alias as the original package (e.g., 'fmt fmt')",
-				Destination: &opts.parse.ignoreSame,
+				Destination: &opts.Parse.IgnoreSame,
 			},
 			&cli.UintFlag{
 				Name:        "min",
 				Usage:       "minimal amount of usages to appear in the output (inclusive)",
-				Destination: &opts.output.min,
+				Destination: &opts.Output.Min,
 			},
 			&cli.UintFlag{
 				Name:        "max",
 				Usage:       "maximum amount of usages to appear in the output (inclusive)",
-				Destination: &opts.output.max,
+				Destination: &opts.Output.Max,
 			},
 		},
 		Arguments: []cli.Argument{
 			&cli.StringArgs{
 				Name:        "path",
 				UsageText:   "list of directories to parse for imports. For recursion see -r flag",
-				Destination: &opts.paths,
+				Destination: &opts.Paths,
 				Min:         0,
 				Max:         -1,
 				Config:      cli.StringConfig{TrimSpace: true},
@@ -111,8 +112,8 @@ func main() {
 			},
 		},
 		Action: func(ctx context.Context, c *cli.Command) error {
-			if len(opts.paths) == 0 {
-				opts.paths = []string{"./..."}
+			if len(opts.Paths) == 0 {
+				opts.Paths = []string{"./..."}
 			}
 
 			return run(opts)
@@ -126,25 +127,25 @@ func main() {
 	}
 }
 
-func run(opts options) error {
-	storage, err := parseFiles(opts)
+func run(opts Options) error {
+	storage, err := ParseFiles(opts)
 	if err != nil {
 		return fmt.Errorf("can't parse: %w", err)
 	}
 
 	var printer Printer
-	switch opts.output.format {
-	case formatText:
+	switch opts.Output.Format {
+	case FormatText:
 		printer = &TextPrinter{}
-	case formatTextColored:
-		printer = &TextPrinter{colored: true}
-	case formatJson:
+	case FormatTextColored:
+		printer = &TextPrinter{Colored: true}
+	case FormatJson:
 		printer = &JsonPrinter{}
-	case formatCsv:
+	case FormatCsv:
 		printer = &CsvPrinter{}
 	}
 
-	if err := printer.Print(os.Stdout, storage.intoOutput()); err != nil {
+	if err := printer.Print(os.Stdout, storage.IntoOuput()); err != nil {
 		return fmt.Errorf("can't print: %w", err)
 	}
 

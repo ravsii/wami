@@ -1,44 +1,44 @@
-package main
+package wami
 
 import (
 	"regexp"
 )
 
 const (
-	formatText        = "text"
-	formatTextColored = "text-colored"
-	formatJson        = "json"
-	formatCsv         = "csv"
+	FormatText        = "text"
+	FormatTextColored = "text-colored"
+	FormatJson        = "json"
+	FormatCsv         = "csv"
 )
 
 type (
-	options struct {
-		paths []string
+	Options struct {
+		Paths []string
 
 		// options related to parsing
-		parse parseOptions
+		Parse ParseOptions
 
-		// options related to output
-		output outputOptions
+		// options related to Output
+		Output OutputOptions
 	}
 
-	parseOptions struct {
-		recursive bool
+	ParseOptions struct {
+		Recursive bool
 
-		include      *regexp.Regexp
-		includeAlias *regexp.Regexp
-		ignore       *regexp.Regexp
-		ignoreAlias  *regexp.Regexp
+		Include      *regexp.Regexp
+		IncludeAlias *regexp.Regexp
+		Ignore       *regexp.Regexp
+		IgnoreAlias  *regexp.Regexp
 
-		ignoreDot   bool
-		ignoreBlank bool
-		ignoreSame  bool
+		IgnoreDot   bool
+		IgnoreBlank bool
+		IgnoreSame  bool
 	}
 
-	outputOptions struct {
-		aliasesOnly bool
-		format      string
-		max         uint
-		min         uint
+	OutputOptions struct {
+		AliasesOnly bool
+		Format      string
+		Max         uint
+		Min         uint
 	}
 )

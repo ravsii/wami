@@ -1,4 +1,4 @@
-package main
+package wami
 
 import (
 	"cmp"
@@ -10,7 +10,7 @@ import (
 type (
 	importStorage struct {
 		imports map[string]importItem
-		opts    options
+		opts    Options
 	}
 
 	importItem struct {
@@ -20,18 +20,18 @@ type (
 	}
 )
 
-func newStorage(opts options) importStorage {
+func NewStorage(opts Options) importStorage {
 	return importStorage{
 		imports: make(map[string]importItem),
 		opts:    opts,
 	}
 }
 
-func (s *importStorage) add(path string) {
-	s.addAliased(path, "")
+func (s *importStorage) Add(path string) {
+	s.AddAliased(path, "")
 }
 
-func (s *importStorage) addAliased(path, alias string) {
+func (s *importStorage) AddAliased(path, alias string) {
 	path = strings.Trim(path, `"\`)
 
 	if !s.shouldAddPath(path, alias) {
@@ -40,9 +40,7 @@ func (s *importStorage) addAliased(path, alias string) {
 
 	item, ok := s.imports[path]
 	if !ok {
-		item = importItem{
-			path: path,
-		}
+		item = importItem{path: path}
 	}
 
 	item.total++
@@ -57,30 +55,8 @@ func (s *importStorage) addAliased(path, alias string) {
 	s.imports[path] = item
 }
 
-func (s *importStorage) shouldAddPath(path, alias string) bool {
-	if s.opts.parse.include != nil && !s.opts.parse.include.MatchString(path) ||
-		s.opts.parse.ignore != nil && s.opts.parse.ignore.MatchString(path) ||
-		s.opts.parse.includeAlias != nil && !s.opts.parse.includeAlias.MatchString(alias) ||
-		s.opts.parse.ignoreAlias != nil && s.opts.parse.ignoreAlias.MatchString(alias) {
-		return false
-	}
-
-	return true
-}
-
-func (s *importStorage) shouldAddAlias(path, alias string) bool {
-	if alias == "" ||
-		alias == "." && s.opts.parse.ignoreDot ||
-		alias == "_" && s.opts.parse.ignoreBlank ||
-		alias == filepath.Base(path) && s.opts.parse.ignoreSame {
-		return false
-	}
-
-	return true
-}
-
 var (
-	importDataCmp = func(a, b OutputImports) int {
+	importsCmp = func(a, b OutputImports) int {
 		return cmp.Or(
 			cmp.Compare(b.Count, a.Count),
 			cmp.Compare(a.Path, b.Path),
@@ -94,31 +70,59 @@ var (
 	}
 )
 
-func (s *importStorage) intoOutput() []OutputImports {
-	imports := make([]OutputImports, 0, len(s.imports))
+func (s *importStorage) IntoOuput() []OutputImports {
+	results := make([]OutputImports, 0, len(s.imports))
 
-	for _, imp := range s.imports {
-		if s.opts.output.min > 0 && imp.total < (s.opts.output.min) ||
-			s.opts.output.max > 0 && imp.total > s.opts.output.max ||
-			s.opts.output.aliasesOnly && len(imp.aliases) == 0 {
+	for _, outputImport := range s.imports {
+		// TODO: Better filter func
+		if s.opts.Output.Min > 0 && outputImport.total < (s.opts.Output.Min) ||
+			s.opts.Output.Max > 0 && outputImport.total > s.opts.Output.Max ||
+			s.opts.Output.AliasesOnly && len(outputImport.aliases) == 0 {
 			continue
 		}
 
-		aliases := make([]Alias, 0, len(imp.aliases))
-		for alias, count := range imp.aliases {
-			aliases = append(aliases, Alias{Count: count, Name: alias})
+		resultImport := OutputImports{
+			Path:  outputImport.path,
+			Count: outputImport.total,
 		}
 
-		slices.SortFunc(aliases, aliasCmp)
+		if len(outputImport.aliases) > 0 {
+			aliases := make([]Alias, 0, len(outputImport.aliases))
 
-		imports = append(imports, OutputImports{
-			Path:    imp.path,
-			Count:   imp.total,
-			Aliases: aliases,
-		})
+			for alias, count := range outputImport.aliases {
+				aliases = append(aliases, Alias{Count: count, Name: alias})
+			}
+
+			resultImport.Aliases = aliases
+			slices.SortFunc(resultImport.Aliases, aliasCmp)
+		}
+
+		results = append(results, resultImport)
 	}
 
-	slices.SortFunc(imports, importDataCmp)
+	slices.SortFunc(results, importsCmp)
 
-	return imports
+	return results
+}
+
+func (s *importStorage) shouldAddPath(path, alias string) bool {
+	if s.opts.Parse.Include != nil && !s.opts.Parse.Include.MatchString(path) ||
+		s.opts.Parse.Ignore != nil && s.opts.Parse.Ignore.MatchString(path) ||
+		s.opts.Parse.IncludeAlias != nil && !s.opts.Parse.IncludeAlias.MatchString(alias) ||
+		s.opts.Parse.IgnoreAlias != nil && s.opts.Parse.IgnoreAlias.MatchString(alias) {
+		return false
+	}
+
+	return true
+}
+
+func (s *importStorage) shouldAddAlias(path, alias string) bool {
+	if alias == "" ||
+		alias == "." && s.opts.Parse.IgnoreDot ||
+		alias == "_" && s.opts.Parse.IgnoreBlank ||
+		alias == filepath.Base(path) && s.opts.Parse.IgnoreSame {
+		return false
+	}
+
+	return true
 }

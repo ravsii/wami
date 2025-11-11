@@ -1,4 +1,4 @@
-package main
+package wami
 
 import (
 	"fmt"
@@ -9,17 +9,17 @@ import (
 	"strings"
 )
 
-func parseFiles(opts options) (*importStorage, error) {
+func ParseFiles(opts Options) (*importStorage, error) {
 	mode := parser.ImportsOnly | parser.SkipObjectResolution
 
 	fset := token.NewFileSet()
-	storage := newStorage(opts)
+	storage := NewStorage(opts)
 
 	// struct{} is probably more efficient, but bool is way cleaner
-	seen := make(map[string]bool, len(opts.paths))
+	seen := make(map[string]bool, len(opts.Paths))
 
-	for _, root := range opts.paths {
-		isRecursive := opts.parse.recursive
+	for _, root := range opts.Paths {
+		isRecursive := opts.Parse.Recursive
 		if strings.HasSuffix(root, "/...") {
 			isRecursive = true
 			root = root[:len(root)-3]
@@ -56,9 +56,9 @@ func parseFiles(opts options) (*importStorage, error) {
 				}
 
 				if imp.Name != nil {
-					storage.addAliased(imp.Path.Value, imp.Name.Name)
+					storage.AddAliased(imp.Path.Value, imp.Name.Name)
 				} else {
-					storage.add(imp.Path.Value)
+					storage.Add(imp.Path.Value)
 				}
 			}
 

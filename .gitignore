@@ -31,3 +31,4 @@ go.work.sum
 # .vscode/
 test-subjects
 .nvim.lua
+build
