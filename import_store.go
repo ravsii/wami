@@ -40,9 +40,7 @@ func (s *importStorage) AddAliased(path, alias string) {
 
 	item, ok := s.imports[path]
 	if !ok {
-		item = importItem{
-			path: path,
-		}
+		item = importItem{path: path}
 	}
 
 	item.total++
@@ -58,7 +56,7 @@ func (s *importStorage) AddAliased(path, alias string) {
 }
 
 var (
-	importDataCmp = func(a, b OutputImports) int {
+	importsCmp = func(a, b OutputImports) int {
 		return cmp.Or(
 			cmp.Compare(b.Count, a.Count),
 			cmp.Compare(a.Path, b.Path),
@@ -73,32 +71,38 @@ var (
 )
 
 func (s *importStorage) IntoOuput() []OutputImports {
-	imports := make([]OutputImports, 0, len(s.imports))
+	results := make([]OutputImports, 0, len(s.imports))
 
-	for _, imp := range s.imports {
-		if s.opts.Output.Min > 0 && imp.total < (s.opts.Output.Min) ||
-			s.opts.Output.Max > 0 && imp.total > s.opts.Output.Max ||
-			s.opts.Output.AliasesOnly && len(imp.aliases) == 0 {
+	for _, outputImport := range s.imports {
+		// TODO: Better filter func
+		if s.opts.Output.Min > 0 && outputImport.total < (s.opts.Output.Min) ||
+			s.opts.Output.Max > 0 && outputImport.total > s.opts.Output.Max ||
+			s.opts.Output.AliasesOnly && len(outputImport.aliases) == 0 {
 			continue
 		}
 
-		aliases := make([]Alias, 0, len(imp.aliases))
-		for alias, count := range imp.aliases {
-			aliases = append(aliases, Alias{Count: count, Name: alias})
+		resultImport := OutputImports{
+			Path:  outputImport.path,
+			Count: outputImport.total,
 		}
 
-		slices.SortFunc(aliases, aliasCmp)
+		if len(outputImport.aliases) > 0 {
+			aliases := make([]Alias, 0, len(outputImport.aliases))
 
-		imports = append(imports, OutputImports{
-			Path:    imp.path,
-			Count:   imp.total,
-			Aliases: aliases,
-		})
+			for alias, count := range outputImport.aliases {
+				aliases = append(aliases, Alias{Count: count, Name: alias})
+			}
+
+			resultImport.Aliases = aliases
+			slices.SortFunc(resultImport.Aliases, aliasCmp)
+		}
+
+		results = append(results, resultImport)
 	}
 
-	slices.SortFunc(imports, importDataCmp)
+	slices.SortFunc(results, importsCmp)
 
-	return imports
+	return results
 }
 
 func (s *importStorage) shouldAddPath(path, alias string) bool {
