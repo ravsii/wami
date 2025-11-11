@@ -5,6 +5,8 @@ test:
 	go test ./... -race
 
 coverage:
-	go test -cover ./...
+	mkdir -p tmp
+	go test -coverprofile=tmp/coverage.out ./...
+	go tool cover -html=tmp/coverage.out
 
 .PHONY: build test coverage
