@@ -1,4 +1,4 @@
-package main
+package wami
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ const (
 
 var _ Printer = (*TextPrinter)(nil)
 
-type TextPrinter struct{ colored bool }
+type TextPrinter struct{ Colored bool }
 
 var (
 	colorName   = color.New(color.FgHiRed, color.Bold, color.Italic).SprintFunc()
@@ -26,7 +26,7 @@ var (
 
 func (t *TextPrinter) Print(w io.Writer, imports []OutputImports) error {
 	var buf bytes.Buffer
-	color.NoColor = !t.colored
+	color.NoColor = !t.Colored
 
 	for _, imprt := range imports {
 		usageStr := "usage"

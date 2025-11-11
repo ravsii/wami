@@ -1,20 +1,20 @@
-package main
+package wami_test
 
 import (
 	"bytes"
 	"encoding/json"
 	"testing"
+
+	"github.com/ravsii/wami"
 )
 
-// TODO: This is an example test just to generate codecov badge
-
 func TestJsonPrinter_Print(t *testing.T) {
-	p := JsonPrinter{}
-	data := []OutputImports{
+	p := wami.JsonPrinter{}
+	data := []wami.OutputImports{
 		{
 			Path:  "fmt",
 			Count: 2,
-			Aliases: []Alias{
+			Aliases: []wami.Alias{
 				{Count: 2, Name: "f"},
 			},
 		},
@@ -25,7 +25,7 @@ func TestJsonPrinter_Print(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	var got []OutputImports
+	var got []wami.OutputImports
 	if err := json.Unmarshal(buf.Bytes(), &got); err != nil {
 		t.Fatalf("invalid JSON output: %v", err)
 	}
