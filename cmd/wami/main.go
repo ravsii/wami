@@ -17,7 +17,7 @@ func main() {
 
 	cmd := cli.Command{
 		Name:  "wami",
-		Usage: "What are my imports? (wami) is a cli for import analisys for go apps.",
+		Usage: "What are my imports? (wami) is a cli for import analysis for go apps.",
 		Flags: []cli.Flag{
 			// just add flags as they're being made.
 			// We're sorting them afterwards.
