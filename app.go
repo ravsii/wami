@@ -165,10 +165,25 @@ func Run(args []string) {
 				return fmt.Errorf("can't parse: %w", err)
 			}
 
+			// for pkg, deps := range links {
+			// 	_, err := fmt.Fprintf(os.Stdout, "%s imports:\n", pkg)
+			// 	if err != nil {
+			// 		return fmt.Errorf("package %s: %w", pkg, err)
+			// 	}
+			// 	for dep := range deps {
+			// 		_, err := fmt.Fprintf(os.Stdout, "  -> %s\n", dep)
+			// 		if err != nil {
+			// 			return fmt.Errorf("dep %s: %w", dep, err)
+			// 		}
+			// 	}
+			// }
+
 			for pkg, deps := range links {
-				fmt.Fprintf(os.Stdout, "%s imports:\n", pkg)
 				for dep := range deps {
-					fmt.Fprintf(os.Stdout, "  -> %s\n", dep)
+					_, err := fmt.Fprintf(os.Stdout, "%s -> %s\n", pkg, dep)
+					if err != nil {
+						return fmt.Errorf("dep %s: %w", dep, err)
+					}
 				}
 			}
 
