@@ -29,12 +29,34 @@ go install github.com/ravsii/wami@latest
 
 ```sh
 NAME:
-   wami - What are my imports? (wami) is a cli for import analisys for go apps.
+   wami - What are my imports? (wami) is a cli for import analysis for go apps.
 
 USAGE:
-   wami [global options] [arguments...]
+   wami [global options] [command [command options]] [arguments...]
+
+COMMANDS:
+   count    Counts import usages and their aliases
+   graph    Visualizes imports into a graph. Can be used to analyze internal-only imports, external imports and go.mod dependencies
+   help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
+   --help, -h  show help
+```
+
+### Graph
+
+TODO
+
+### Count
+
+```sh
+NAME:
+   wami count - Counts import usages and their aliases
+
+USAGE:
+   wami count [options] list of directories to parse for imports. For recursion see -r flag 
+
+OPTIONS:
    --aliases-only, -a          only output imports that have aliases. Note: all imports will be parsed anyways, for a total amount of usages
    --format string, -f string  output format (text, text-colored, json, csv) (default: "text-colored")
    --ignore regexp             regexp to ignore import paths
