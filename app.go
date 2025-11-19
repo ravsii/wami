@@ -14,9 +14,9 @@ import (
 func Run(args []string) {
 	var opts Options
 
-	cmd := cli.Command{
-		Name:  "wami",
-		Usage: "What are my imports? (wami) is a cli for import analysis for go apps.",
+	cmdCount := cli.Command{
+		Name:  "count",
+		Usage: "Counts import usages and their aliases",
 		Flags: []cli.Flag{
 			// just add flags as they're being made.
 			// We're sorting them afterwards.
@@ -115,40 +115,91 @@ func Run(args []string) {
 				opts.Paths = []string{"./..."}
 			}
 
-			return run(opts)
+			storage, err := ParseFiles(opts)
+			if err != nil {
+				return fmt.Errorf("can't parse: %w", err)
+			}
+
+			var printer Printer
+			switch opts.Output.Format {
+			case FormatText:
+				printer = &TextPrinter{}
+			case FormatTextColored:
+				printer = &TextPrinter{Colored: true}
+			case FormatJson:
+				printer = &JsonPrinter{}
+			case FormatCsv:
+				printer = &CsvPrinter{}
+			}
+
+			if err := printer.Print(os.Stdout, storage.IntoOuput()); err != nil {
+				return fmt.Errorf("can't print: %w", err)
+			}
+
+			return nil
 		},
 	}
 
+	cmdGraph := cli.Command{
+		Name:  "graph",
+		Usage: "Visualizes imports into a graph. Can be used to analyze internal-only imports, external imports and go.mod dependencies",
+		Flags: []cli.Flag{},
+		Arguments: []cli.Argument{
+			&cli.StringArgs{
+				Name:        "path",
+				UsageText:   "list of directories",
+				Destination: &opts.Paths,
+				Min:         0,
+				Max:         -1,
+				Config:      cli.StringConfig{TrimSpace: true},
+				Value:       "./...",
+			},
+		},
+		Action: func(ctx context.Context, c *cli.Command) error {
+			if len(opts.Paths) == 0 {
+				opts.Paths = []string{"./..."}
+			}
+
+			links, err := ParseGraphFiles(opts)
+			if err != nil {
+				return fmt.Errorf("can't parse: %w", err)
+			}
+
+			for pkg, deps := range links {
+				fmt.Fprintf(os.Stdout, "%s imports:\n", pkg)
+				for dep := range deps {
+					fmt.Fprintf(os.Stdout, "  -> %s\n", dep)
+				}
+			}
+
+			return nil
+		},
+	}
+
+	cmd := cli.Command{
+		Name:  "wami",
+		Usage: "What are my imports? (wami) is a cli for import analysis for go apps.",
+		Arguments: []cli.Argument{
+			&cli.StringArgs{
+				Name:        "path",
+				UsageText:   "list of directories to parse for imports. For recursion see -r flag",
+				Destination: &opts.Paths,
+				Min:         0,
+				Max:         -1,
+				Config:      cli.StringConfig{TrimSpace: true},
+				Value:       "./...",
+			},
+		},
+		Commands: []*cli.Command{&cmdCount, &cmdGraph},
+	}
+
+	sort.Sort(cli.FlagsByName(cmdCount.Flags))
+	sort.Sort(cli.FlagsByName(cmdGraph.Flags))
 	sort.Sort(cli.FlagsByName(cmd.Flags))
 
 	if err := cmd.Run(context.Background(), args); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func run(opts Options) error {
-	storage, err := ParseFiles(opts)
-	if err != nil {
-		return fmt.Errorf("can't parse: %w", err)
-	}
-
-	var printer Printer
-	switch opts.Output.Format {
-	case FormatText:
-		printer = &TextPrinter{}
-	case FormatTextColored:
-		printer = &TextPrinter{Colored: true}
-	case FormatJson:
-		printer = &JsonPrinter{}
-	case FormatCsv:
-		printer = &CsvPrinter{}
-	}
-
-	if err := printer.Print(os.Stdout, storage.IntoOuput()); err != nil {
-		return fmt.Errorf("can't print: %w", err)
-	}
-
-	return nil
 }
 
 func makeParseRegexFunc(dst **regexp.Regexp) func(context.Context, *cli.Command, string) error {
