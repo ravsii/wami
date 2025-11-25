@@ -20,7 +20,6 @@ func ParseGraphFiles(opts Options) (importGraph, error) {
 	fset := token.NewFileSet()
 
 	graph := make(importGraph)
-	seen := make(map[string]bool)
 
 	root := opts.Path
 	isRecursive := opts.Parse.Recursive
@@ -37,7 +36,6 @@ func ParseGraphFiles(opts Options) (importGraph, error) {
 	if err != nil {
 		return nil, fmt.Errorf("find go.mod: %w", err)
 	}
-	projectPath := gomod.path
 
 	if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, wdErr error) error {
 		if wdErr != nil {
@@ -51,10 +49,9 @@ func ParseGraphFiles(opts Options) (importGraph, error) {
 			return filepath.SkipDir
 		}
 
-		if !strings.HasSuffix(path, ".go") || seen[path] {
+		if !strings.HasSuffix(path, ".go") || !strings.HasSuffix(path, "test.go") {
 			return nil
 		}
-		seen[path] = true
 
 		file, err := parser.ParseFile(fset, path, nil, mode)
 		if err != nil {
@@ -62,7 +59,9 @@ func ParseGraphFiles(opts Options) (importGraph, error) {
 			return nil
 		}
 
-		pkg := file.Name.Name
+		pkg := filepath.Dir(path)
+		pkg = strings.TrimPrefix(pkg, gomod.projectRoot)
+		// pkg += "/" + file.Name.Name
 		if _, ok := graph[pkg]; !ok {
 			graph[pkg] = make(map[string]struct{})
 		}
@@ -72,16 +71,22 @@ func ParseGraphFiles(opts Options) (importGraph, error) {
 				continue
 			}
 
-			impPath := strings.Trim(imp.Path.Value, `"`)
-			if projectPath != "" && strings.HasPrefix(impPath, projectPath) {
-				rel := strings.TrimPrefix(impPath, projectPath+"/")
-				parts := strings.Split(rel, "/")
-				impPath = parts[len(parts)-1]
-			} else if projectPath != "" && impPath == projectPath {
-				impPath = filepath.Base(projectPath)
+			importPath := strings.Trim(imp.Path.Value, `"`)
+			importPath = strings.TrimPrefix(importPath, gomod.projectName)
+			if importPath == pkg {
+				continue
 			}
+			// fmt.Println(importPath)
+			// if projectPath != "" && strings.HasPrefix(importPath, projectPath) {
+			// 	rel := strings.TrimPrefix(importPath, projectPath+"/")
+			// 	parts := strings.Split(rel, "/")
+			// 	importPath = parts[len(parts)-1]
+			// } else if projectPath != "" && importPath == projectPath {
+			// 	importPath = filepath.Base(projectPath)
+			// }
+			// fmt.Println(importPath)
 
-			graph[pkg][impPath] = struct{}{}
+			graph[pkg][importPath] = struct{}{}
 		}
 
 		return nil
@@ -92,30 +97,34 @@ func ParseGraphFiles(opts Options) (importGraph, error) {
 	return graph, nil
 }
 
-type gomod struct {
-	path string
+type projectData struct {
+	projectRoot string
+	projectName string
 }
 
-func findGoMod(rootDir string) (gomod, error) {
+func findGoMod(rootDir string) (projectData, error) {
 	dir := rootDir
 	for dir != "" {
 		modFile := filepath.Join(dir, "go.mod")
 		if _, err := os.Stat(modFile); err == nil {
 			data, err := os.ReadFile(modFile)
 			if err != nil {
-				return gomod{}, fmt.Errorf("reading %s: %w", modFile, err)
+				return projectData{}, fmt.Errorf("reading %s: %w", modFile, err)
 			}
 
 			mod, err := modfile.Parse("go.mod", data, nil)
 			if err != nil {
-				return gomod{}, fmt.Errorf("parsing %s: %w", modFile, err)
+				return projectData{}, fmt.Errorf("parsing %s: %w", modFile, err)
 			}
 
 			if mod.Module == nil || mod.Module.Mod.Path == "" {
-				return gomod{}, fmt.Errorf("no module path in %s", modFile)
+				return projectData{}, fmt.Errorf("no module path in %s", modFile)
 			}
 
-			return gomod{path: mod.Module.Mod.Path}, nil
+			return projectData{
+				projectRoot: dir,
+				projectName: mod.Module.Mod.Path,
+			}, nil
 		}
 
 		parent := filepath.Dir(dir)
@@ -126,5 +135,5 @@ func findGoMod(rootDir string) (gomod, error) {
 		dir = parent
 	}
 
-	return gomod{}, fmt.Errorf("go.mod not found in %s or any parent directories", rootDir)
+	return projectData{}, fmt.Errorf("go.mod not found in %s or any parent directories", rootDir)
 }
