@@ -13,7 +13,7 @@ const (
 
 type (
 	Options struct {
-		Paths []string
+		Path string
 
 		// options related to parsing
 		Parse ParseOptions

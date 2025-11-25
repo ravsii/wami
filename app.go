@@ -100,21 +100,15 @@ func Run(args []string) {
 			},
 		},
 		Arguments: []cli.Argument{
-			&cli.StringArgs{
+			&cli.StringArg{
 				Name:        "path",
 				UsageText:   "list of directories to parse for imports. For recursion see -r flag",
-				Destination: &opts.Paths,
-				Min:         0,
-				Max:         -1,
+				Destination: &opts.Path,
 				Config:      cli.StringConfig{TrimSpace: true},
 				Value:       "./...",
 			},
 		},
 		Action: func(ctx context.Context, c *cli.Command) error {
-			if len(opts.Paths) == 0 {
-				opts.Paths = []string{"./..."}
-			}
-
 			storage, err := ParseFiles(opts)
 			if err != nil {
 				return fmt.Errorf("can't parse: %w", err)
@@ -145,21 +139,15 @@ func Run(args []string) {
 		Usage: "Visualizes imports into a graph. Can be used to analyze internal-only imports, external imports and go.mod dependencies",
 		Flags: []cli.Flag{},
 		Arguments: []cli.Argument{
-			&cli.StringArgs{
+			&cli.StringArg{
 				Name:        "path",
 				UsageText:   "list of directories",
-				Destination: &opts.Paths,
-				Min:         0,
-				Max:         -1,
+				Destination: &opts.Path,
 				Config:      cli.StringConfig{TrimSpace: true},
 				Value:       "./...",
 			},
 		},
 		Action: func(ctx context.Context, c *cli.Command) error {
-			if len(opts.Paths) == 0 {
-				opts.Paths = []string{"./..."}
-			}
-
 			links, err := ParseGraphFiles(opts)
 			if err != nil {
 				return fmt.Errorf("can't parse: %w", err)
@@ -180,7 +168,7 @@ func Run(args []string) {
 
 			for pkg, deps := range links {
 				for dep := range deps {
-					_, err := fmt.Fprintf(os.Stdout, "%s -> %s\n", pkg, dep)
+					_, err := fmt.Fprintf(os.Stdout, "%q -> %q\n", pkg, dep)
 					if err != nil {
 						return fmt.Errorf("dep %s: %w", dep, err)
 					}
@@ -192,19 +180,8 @@ func Run(args []string) {
 	}
 
 	cmd := cli.Command{
-		Name:  "wami",
-		Usage: "What are my imports? (wami) is a cli for import analysis for go apps.",
-		Arguments: []cli.Argument{
-			&cli.StringArgs{
-				Name:        "path",
-				UsageText:   "list of directories to parse for imports. For recursion see -r flag",
-				Destination: &opts.Paths,
-				Min:         0,
-				Max:         -1,
-				Config:      cli.StringConfig{TrimSpace: true},
-				Value:       "./...",
-			},
-		},
+		Name:     "wami",
+		Usage:    "What are my imports? (wami) is a cli for import analysis for go apps.",
 		Commands: []*cli.Command{&cmdCount, &cmdGraph},
 	}
 

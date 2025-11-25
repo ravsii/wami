@@ -1,7 +1,6 @@
 package wami
 
 import (
-	"errors"
 	"fmt"
 	"go/parser"
 	"go/token"
@@ -23,113 +22,109 @@ func ParseGraphFiles(opts Options) (importGraph, error) {
 	graph := make(importGraph)
 	seen := make(map[string]bool)
 
-	packagePrefix := ""
-	gomodFound := false
+	root := opts.Path
+	isRecursive := opts.Parse.Recursive
+	if strings.HasSuffix(root, "/...") {
+		isRecursive = true
+		root = root[:len(root)-4]
+	}
+	root, err := filepath.Abs(root)
+	if err != nil {
+		return nil, fmt.Errorf("root path %q: %w", root, err)
+	}
 
-	for _, root := range opts.Paths {
-		isRecursive := opts.Parse.Recursive
-		if strings.HasSuffix(root, "/...") {
-			isRecursive = true
-			root = root[:len(root)-3]
+	gomod, err := findGoMod(root)
+	if err != nil {
+		return nil, fmt.Errorf("find go.mod: %w", err)
+	}
+	projectPath := gomod.path
+
+	if err := filepath.WalkDir(root, func(path string, d fs.DirEntry, wdErr error) error {
+		if wdErr != nil {
+			return fmt.Errorf("error visiting %s: %w", path, wdErr)
 		}
 
-		err := filepath.WalkDir(root, func(path string, d fs.DirEntry, wdErr error) error {
-			if wdErr != nil {
-				return fmt.Errorf("error visiting %s: %w", path, wdErr)
-			}
-
-			if d.IsDir() {
-				if isRecursive || path == root {
-					return nil
-				}
-				return filepath.SkipDir
-			}
-
-			if !strings.HasSuffix(path, ".go") || seen[path] {
+		if d.IsDir() {
+			if isRecursive || path == root {
 				return nil
 			}
-			seen[path] = true
+			return filepath.SkipDir
+		}
 
-			if !gomodFound {
-				if gomodPath, err := FindModulePath(path); err == nil {
-					packagePrefix = gomodPath
-					gomodFound = true
-				}
-			}
-
-			file, err := parser.ParseFile(fset, path, nil, mode)
-			if err != nil {
-				fmt.Printf("Error parsing %s: %v\n", path, err)
-				return nil
-			}
-
-			// Key node is the bare package name of the current file
-			pkg := file.Name.Name
-			if _, ok := graph[pkg]; !ok {
-				graph[pkg] = make(map[string]struct{})
-			}
-
-			// Collect imports
-			for _, imp := range file.Imports {
-				if imp.Path == nil {
-					continue
-				}
-
-				impPath := strings.Trim(imp.Path.Value, `"`) // remove quotes
-
-				// If import is part of the same module, strip module prefix
-				if packagePrefix != "" && strings.HasPrefix(impPath, packagePrefix) {
-					rel := strings.TrimPrefix(impPath, packagePrefix+"/")
-					// Use the last path component as the bare package name
-					parts := strings.Split(rel, "/")
-					impPath = parts[len(parts)-1]
-				} else if packagePrefix != "" && impPath == packagePrefix {
-					// Special case: importing module root
-					impPath = filepath.Base(packagePrefix)
-				}
-
-				graph[pkg][impPath] = struct{}{}
-			}
+		if !strings.HasSuffix(path, ".go") || seen[path] {
 			return nil
-		})
-		if err != nil {
-			return nil, err
 		}
+		seen[path] = true
+
+		file, err := parser.ParseFile(fset, path, nil, mode)
+		if err != nil {
+			fmt.Printf("Error parsing %s: %v\n", path, err)
+			return nil
+		}
+
+		pkg := file.Name.Name
+		if _, ok := graph[pkg]; !ok {
+			graph[pkg] = make(map[string]struct{})
+		}
+
+		for _, imp := range file.Imports {
+			if imp.Path == nil {
+				continue
+			}
+
+			impPath := strings.Trim(imp.Path.Value, `"`)
+			if projectPath != "" && strings.HasPrefix(impPath, projectPath) {
+				rel := strings.TrimPrefix(impPath, projectPath+"/")
+				parts := strings.Split(rel, "/")
+				impPath = parts[len(parts)-1]
+			} else if projectPath != "" && impPath == projectPath {
+				impPath = filepath.Base(projectPath)
+			}
+
+			graph[pkg][impPath] = struct{}{}
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 
 	return graph, nil
 }
 
-func FindModulePath(filePath string) (string, error) {
-	dir := filepath.Dir(filePath)
+type gomod struct {
+	path string
+}
 
-	for {
+func findGoMod(rootDir string) (gomod, error) {
+	dir := rootDir
+	for dir != "" {
 		modFile := filepath.Join(dir, "go.mod")
 		if _, err := os.Stat(modFile); err == nil {
 			data, err := os.ReadFile(modFile)
 			if err != nil {
-				return "", fmt.Errorf("failed to read go.mod: %w", err)
+				return gomod{}, fmt.Errorf("reading %s: %w", modFile, err)
 			}
 
 			mod, err := modfile.Parse("go.mod", data, nil)
 			if err != nil {
-				return "", fmt.Errorf("failed to parse go.mod: %w", err)
+				return gomod{}, fmt.Errorf("parsing %s: %w", modFile, err)
 			}
 
 			if mod.Module == nil || mod.Module.Mod.Path == "" {
-				return "", errors.New("module path not found in go.mod")
+				return gomod{}, fmt.Errorf("no module path in %s", modFile)
 			}
 
-			return mod.Module.Mod.Path, nil
+			return gomod{path: mod.Module.Mod.Path}, nil
 		}
 
-		// go.mod not found, go up one directory
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			break // reached filesystem root
+			break
 		}
+
 		dir = parent
 	}
 
-	return "", errors.New("go.mod not found in any parent directories")
+	return gomod{}, fmt.Errorf("go.mod not found in %s or any parent directories", rootDir)
 }
