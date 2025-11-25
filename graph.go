@@ -2,6 +2,7 @@ package wami
 
 import (
 	"fmt"
+	"go/build"
 	"go/parser"
 	"go/token"
 	"io/fs"
@@ -49,7 +50,7 @@ func ParseGraphFiles(opts Options) (importGraph, error) {
 			return filepath.SkipDir
 		}
 
-		if !strings.HasSuffix(path, ".go") || !strings.HasSuffix(path, "test.go") {
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
 			return nil
 		}
 
@@ -61,7 +62,9 @@ func ParseGraphFiles(opts Options) (importGraph, error) {
 
 		pkg := filepath.Dir(path)
 		pkg = strings.TrimPrefix(pkg, gomod.projectRoot)
-		// pkg += "/" + file.Name.Name
+		if pkg == "" {
+			pkg = gomod.projectName
+		}
 		if _, ok := graph[pkg]; !ok {
 			graph[pkg] = make(map[string]struct{})
 		}
@@ -72,19 +75,25 @@ func ParseGraphFiles(opts Options) (importGraph, error) {
 			}
 
 			importPath := strings.Trim(imp.Path.Value, `"`)
+			_, err := build.Import(importPath, "", build.IgnoreVendor)
+			if err == nil {
+				// remove std
+				// fmt.Println("std", p.Dir)
+				continue
+			}
+
+			// remove external
+			if !strings.HasPrefix(importPath, gomod.projectName) {
+				continue
+			}
+
 			importPath = strings.TrimPrefix(importPath, gomod.projectName)
+			if importPath == "" {
+				importPath = gomod.projectName
+			}
 			if importPath == pkg {
 				continue
 			}
-			// fmt.Println(importPath)
-			// if projectPath != "" && strings.HasPrefix(importPath, projectPath) {
-			// 	rel := strings.TrimPrefix(importPath, projectPath+"/")
-			// 	parts := strings.Split(rel, "/")
-			// 	importPath = parts[len(parts)-1]
-			// } else if projectPath != "" && importPath == projectPath {
-			// 	importPath = filepath.Base(projectPath)
-			// }
-			// fmt.Println(importPath)
 
 			graph[pkg][importPath] = struct{}{}
 		}

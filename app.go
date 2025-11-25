@@ -166,14 +166,27 @@ func Run(args []string) {
 			// 	}
 			// }
 
+			// d2
+			// for pkg, deps := range links {
+			// 	for dep := range deps {
+			// 		_, err := fmt.Fprintf(os.Stdout, "%q -> %q\n", pkg, dep)
+			// 		if err != nil {
+			// 			return fmt.Errorf("dep %s: %w", dep, err)
+			// 		}
+			// 	}
+			// }
+
+			// graphviz
+			fmt.Fprintf(os.Stdout, "digraph G {\n")
 			for pkg, deps := range links {
 				for dep := range deps {
-					_, err := fmt.Fprintf(os.Stdout, "%q -> %q\n", pkg, dep)
+					_, err := fmt.Fprintf(os.Stdout, "%q -> %q;\n", pkg, dep)
 					if err != nil {
 						return fmt.Errorf("dep %s: %w", dep, err)
 					}
 				}
 			}
+			fmt.Fprintf(os.Stdout, "}")
 
 			return nil
 		},
